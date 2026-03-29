@@ -20,11 +20,25 @@ def guardar_datos(ventas):
 
 ventas = cargar_datos()
 
+def buscar_venta_id(ventas, id_buscar):
+    for venta in ventas:
+        if venta["id"] == id_buscar:
+            return venta
+    return None
+
 def registrar_venta(ventas, producto, cantidad, precio):
     producto = producto.strip().lower()
+    if not producto:
+        return {"ok": False, "mensaje": "El nombre del producto no puede estar vacío."}
+
     cantidad = int(str(cantidad).split()[0])
     precio = int(str(precio).replace(".", "").replace(",", ""))
 
+    if cantidad <= 0:
+        return {"ok": False, "mensaje": "La cantidad debe ser mayor que cero."}
+    if precio <= 0:
+        return {"ok": False, "mensaje": "El precio debe ser mayor que cero."}
+    
     if ventas:
         nuevo_id = max(venta["id"] for venta in ventas)+1
     else:
@@ -60,7 +74,7 @@ def ver_ventas_dia(ventas):
     return {"ventas": ventas_hoy, "total": total}
     
 def formatear_programa():
-    # notas del diseñador backend para fabian (ya se que dijiste no notas, pero es necesario)
+    # notas del diseñador backend para Fabian (ya se que dijiste no notas, pero es necesario)
     # Que el diseñador del frontend se encargue de pedir la confirmacion al usuario antes de llamar a esta funcion
     # Fabian, ademas acuerdate de poner el ventas.clear() en el frontend para que se borren las ventas de la memoria del programa tambien, no solo del archivo json
     # sino eso quedara guardado en memoria y se volvera a escribir en el json la proxima vez que se registre una venta
@@ -69,12 +83,7 @@ def formatear_programa():
     return {"ok": True, "mensaje": "Todas las ventas han sido borradas."}
 
 def eliminar_venta(ventas, id_eliminar):    
-    venta_encontrada = None
-
-    for venta in ventas:
-        if venta["id"] == id_eliminar:
-            venta_encontrada = venta
-            break
+    venta_encontrada = buscar_venta_id(ventas, id_eliminar)
 
     if venta_encontrada:
         ventas.remove(venta_encontrada)
@@ -84,11 +93,7 @@ def eliminar_venta(ventas, id_eliminar):
         return {"ok": False, "mensaje": "No se encontró una venta con ese ID. Intente de nuevo."}
 
 def editar_venta(ventas, id_editar, campo, nuevo_valor):
-    venta_encontrada = None
-    for venta in ventas:
-        if venta["id"] == id_editar:
-            venta_encontrada = venta
-            break
+    venta_encontrada = buscar_venta_id(ventas, id_editar)
         
     if not venta_encontrada:
         return{"ok": False, "mensaje": "No se encontró una venta con ese ID. Intente de nuevo."}
@@ -96,7 +101,10 @@ def editar_venta(ventas, id_editar, campo, nuevo_valor):
     if campo == "producto":
         venta_encontrada["producto"] = str(nuevo_valor).strip().lower()
     elif campo == "cantidad":
-        venta_encontrada["cantidad"] = int(str(nuevo_valor).split()[0])
+        nueva_cantidad = int(str(nuevo_valor).split()[0])
+        if nueva_cantidad <= 0:
+            return {"ok": False, "mensaje": "La cantidad debe ser mayor que cero."}
+        venta_encontrada["cantidad"] = nueva_cantidad 
     elif campo == "precio":
         venta_encontrada["precio"] = int(str(nuevo_valor).replace(".", "").replace(",", ""))
     else:
