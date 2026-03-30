@@ -30,12 +30,11 @@ def eliminar_id():
 def editar_id():
     resultado = editar_venta(ventas, int(id_editar.get()), campo.get(), nuevo_valor.get())
     mensaje_editar.set(resultado["mensaje"])
-def formatear():
+def limpiar_todo():
     confirmar = messagebox.askyesno("confirmacion", "¿estás seguro?")
     if confirmar == True:
-        resultado = formatear_programa()
+        resultado = limpiar_todo(ventas)
         mensaje_formateo.set(resultado["mensaje"])
-        ventas.clear()
 root = tk.Tk()
 root.title("Sistema de ventas")
 root.state("zoomed")
@@ -113,7 +112,6 @@ frame_config = tk.Frame(notebook)
 notebook.add(frame_config, text="Configuración")
 mensaje_formateo = tk.StringVar()
 tk.Label(frame_config, textvariable=mensaje_formateo).grid(row=0)
-tk.Button(frame_config, text="Borrar todo", command=formatear).grid(row=1)
+tk.Button(frame_config, text="Borrar todo", command=limpiar_todo).grid(row=1)
 
 root.mainloop()
-
