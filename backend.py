@@ -73,13 +73,10 @@ def ver_ventas_dia(ventas):
 
     return {"ventas": ventas_hoy, "total": total}
     
-def formatear_programa():
-    # notas del diseñador backend para Fabian (ya se que dijiste no notas, pero es necesario)
-    # Que el diseñador del frontend se encargue de pedir la confirmacion al usuario antes de llamar a esta funcion
-    # Fabian, ademas acuerdate de poner el ventas.clear() en el frontend para que se borren las ventas de la memoria del programa tambien, no solo del archivo json
-    # sino eso quedara guardado en memoria y se volvera a escribir en el json la proxima vez que se registre una venta
+def limpiar_todo(ventas):
     with open("memoria.json", "w") as file:
         json.dump([], file)
+    ventas.clear()
     return {"ok": True, "mensaje": "Todas las ventas han sido borradas."}
 
 def eliminar_venta(ventas, id_eliminar):    
