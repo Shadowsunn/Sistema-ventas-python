@@ -1,5 +1,3 @@
-# a chambear fabian, dijiste que no comentarios entonces suerte
-# att: el diseñador del backend (Erick)
 import tkinter as tk
 from backend import *
 from tkinter import ttk, messagebox
@@ -15,7 +13,7 @@ def ventas_dia():
     total_dia.set("Total: " + str(resultado["total"]))
     resultado_mas_vendido = producto_mas_vendido(ventas)
     if resultado_mas_vendido["ok"] == True:
-        mensaje_mas_vendido.set(f" el producto mas vendido fue {(resultado_mas_vendido["producto"])} y se vendio {str(resultado_mas_vendido["cantidad"])}")
+        mensaje_mas_vendido.set(f" el producto más vendido fue {(resultado_mas_vendido["producto"])} y se vendió {str(resultado_mas_vendido["cantidad"])}")
     else:
         mensaje_mas_vendido.set(resultado_mas_vendido["mensaje"])
 def ventas_semana():
@@ -30,11 +28,11 @@ def eliminar_id():
 def editar_id():
     resultado = editar_venta(ventas, int(id_editar.get()), campo.get(), nuevo_valor.get())
     mensaje_editar.set(resultado["mensaje"])
-def limpiar_todo():
-    confirmar = messagebox.askyesno("confirmacion", "¿estás seguro?")
+def confirmar_limpiar_todo():
+    confirmar = messagebox.askyesno("confirmación", "¿estás seguro?")
     if confirmar == True:
         resultado = limpiar_todo(ventas)
-        mensaje_formateo.set(resultado["mensaje"])
+        mensaje_limpiar.set(resultado["mensaje"])
 root = tk.Tk()
 root.title("Sistema de ventas")
 root.state("zoomed")
@@ -73,7 +71,7 @@ mensaje_mas_vendido = tk.StringVar()
 tk.Label(frame_ventas_dia, textvariable=mensaje_mas_vendido).pack()
 total_dia = tk.StringVar()
 tk.Label(frame_ventas_dia, textvariable=total_dia).pack()
-tk.Button(frame_ventas_dia, text="actualizar", command=ventas_dia).pack()
+tk.Button(frame_ventas_dia, text="Actualizar", command=ventas_dia).pack()
 
 frame_semanal = tk.Frame(notebook)
 notebook.add(frame_semanal, text="Resumen semanal")
@@ -85,7 +83,7 @@ tabla_semanal.heading("subtotal", text="SUBTOTAL")
 tabla_semanal.pack()
 total_semanal = tk.StringVar()
 tk.Label(frame_semanal, textvariable=total_semanal).pack()
-tk.Button(frame_semanal, text="actualizar", command=ventas_semana).pack()
+tk.Button(frame_semanal, text="Actualizar", command=ventas_semana).pack()
 
 frame_editar = tk.Frame(notebook)
 notebook.add(frame_editar, text="Editar / Eliminar")
@@ -94,24 +92,24 @@ id_eliminar = tk.Entry(frame_editar)
 id_eliminar.grid(row=0, column=1)
 mensaje_eliminar = tk.StringVar()
 tk.Label(frame_editar, textvariable=mensaje_eliminar).grid(row=1, column=1)
-tk.Button(frame_editar, text="eliminar", command=eliminar_id).grid(row=2, column=1)
+tk.Button(frame_editar, text="Eliminar", command=eliminar_id).grid(row=2, column=1)
 tk.Label(frame_editar, text="ID a editar").grid(row=3, column=0)
 id_editar = tk.Entry(frame_editar)
 id_editar.grid(row=3, column=1)
-tk.Label(frame_editar, text="campo que desea editar").grid(row=4, column=0)
+tk.Label(frame_editar, text="Campo que desea editar").grid(row=4, column=0)
 campo = ttk.Combobox(frame_editar, values=["producto", "cantidad", "precio"], state="readonly")
 campo.grid(row=4, column=1)
-tk.Label(frame_editar, text="ingrese el nuevo valor").grid(row=5, column=0)
+tk.Label(frame_editar, text="Ingrese el nuevo valor").grid(row=5, column=0)
 nuevo_valor = tk.Entry(frame_editar)
 nuevo_valor.grid(row=5, column=1)
-tk.Button(frame_editar, text="editar", command=editar_id).grid(row=6, column=1)
+tk.Button(frame_editar, text="Editar", command=editar_id).grid(row=6, column=1)
 mensaje_editar = tk.StringVar()
 tk.Label(frame_editar, textvariable=mensaje_editar).grid(row=7, column=1)
 
 frame_config = tk.Frame(notebook)
 notebook.add(frame_config, text="Configuración")
-mensaje_formateo = tk.StringVar()
-tk.Label(frame_config, textvariable=mensaje_formateo).grid(row=0)
-tk.Button(frame_config, text="Borrar todo", command=limpiar_todo).grid(row=1)
+mensaje_limpiar = tk.StringVar()
+tk.Label(frame_config, textvariable=mensaje_limpiar).grid(row=0)
+tk.Button(frame_config, text="Borrar todo", command=confirmar_limpiar_todo).grid(row=1)
 
 root.mainloop()
