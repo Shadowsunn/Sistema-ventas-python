@@ -1,22 +1,36 @@
 import json
 from datetime import datetime, timedelta
+import os
 
 def cargar_datos():
-    try:
-        with open("memoria.json", "r") as file:
-            ventas = json.load(file)
-    except (FileNotFoundError, json.JSONDecodeError):
-        return []
-    
-    for i, venta in enumerate(ventas):
-        if "id" not in venta:
-            venta["id"] = i+1
-    guardar_datos(ventas)
-    return ventas
+    for archivo in ["memoria.json", "memoria.tmp"]:
+        try:
+            with open(archivo, "r") as file:
+                ventas = json.load(file)
+                if isinstance(ventas, list):
+                    hubo_cambios = False
+                    for i, venta in enumerate(ventas):
+                        if "id" not in venta:
+                            venta["id"] = i+1
+                            hubo_cambios = True
+                    if hubo_cambios:
+                        guardar_datos(ventas)
+                    return ventas
+        except (FileNotFoundError, json.JSONDecodeError):
+            continue
+    return []
 
 def guardar_datos(ventas):
-    with open("memoria.json", "w") as file:
-        json.dump(ventas, file)
+    try: 
+        with open("memoria.tmp", "w") as file:
+            json.dump(ventas, file)
+
+        os.replace("memoria.tmp", "memoria.json")
+    except Exception as e:
+        if os.path.exists("memoria.tmp"):
+            os.remove("memoria.tmp")
+        return {"ok": False, "mensaje": f"Error al guardar los datos: {e}"}
+    return {"ok": True}
 
 ventas = cargar_datos()
 
@@ -28,11 +42,17 @@ def buscar_venta_id(ventas, id_buscar):
 
 def registrar_venta(ventas, producto, cantidad, precio):
     producto = producto.strip().lower()
-    if not producto:
+    if not producto: 
         return {"ok": False, "mensaje": "El nombre del producto no puede estar vacío."}
 
-    cantidad = int(str(cantidad).split()[0])
-    precio = int(str(precio).replace(".", "").replace(",", ""))
+    try:
+        cantidad = int(str(cantidad).split()[0])
+    except (ValueError, IndexError): 
+        return {"ok": False, "mensaje": "La cantidad debe ser un número válido."}
+    try:
+        precio = int(str(precio).replace(".", "").replace(",", ""))
+    except (ValueError, IndexError):
+        return {"ok": False, "mensaje": "El precio debe ser un número válido."}
 
     if cantidad <= 0:
         return {"ok": False, "mensaje": "La cantidad debe ser mayor que cero."}
@@ -52,7 +72,10 @@ def registrar_venta(ventas, producto, cantidad, precio):
         "fecha": datetime.now().strftime("%Y-%m-%d")
     }
     ventas.append(venta)
-    guardar_datos(ventas)
+    resultado = guardar_datos(ventas)
+    if not resultado["ok"]:
+        ventas.pop()
+        return resultado    
     return {"ok": True, "mensaje": "Venta registrada exitosamente."}
 
 def ver_ventas_dia(ventas):
@@ -74,8 +97,9 @@ def ver_ventas_dia(ventas):
     return {"ventas": ventas_hoy, "total": total}
     
 def limpiar_todo(ventas):
-    with open("memoria.json", "w") as file:
-        json.dump([], file)
+    resultado = guardar_datos([])
+    if not resultado["ok"]:
+        return resultado
     ventas.clear()
     return {"ok": True, "mensaje": "Todas las ventas han sido borradas."}
 
@@ -84,7 +108,10 @@ def eliminar_venta(ventas, id_eliminar):
 
     if venta_encontrada:
         ventas.remove(venta_encontrada)
-        guardar_datos(ventas)
+        resultado = guardar_datos(ventas)
+        if not resultado["ok"]:
+            ventas.append(venta_encontrada)
+            return resultado
         return {"ok": True, "mensaje": "Venta eliminada exitosamente."}
     else:
         return {"ok": False, "mensaje": "No se encontró una venta con ese ID. Intente de nuevo."}
@@ -96,17 +123,31 @@ def editar_venta(ventas, id_editar, campo, nuevo_valor):
         return{"ok": False, "mensaje": "No se encontró una venta con ese ID. Intente de nuevo."}
     
     if campo == "producto":
-        venta_encontrada["producto"] = str(nuevo_valor).strip().lower()
+        nuevo_producto = str(nuevo_valor).strip().lower()
+        if not nuevo_producto:
+            return {"ok": False, "mensaje": "El nombre del producto no puede estar vacío."}
+        venta_encontrada["producto"] = nuevo_producto
     elif campo == "cantidad":
-        nueva_cantidad = int(str(nuevo_valor).split()[0])
+        try:
+            nueva_cantidad = int(str(nuevo_valor).split()[0])
+        except (ValueError, IndexError): 
+            return {"ok": False, "mensaje": "La cantidad debe ser un número válido."}
         if nueva_cantidad <= 0:
             return {"ok": False, "mensaje": "La cantidad debe ser mayor que cero."}
         venta_encontrada["cantidad"] = nueva_cantidad 
     elif campo == "precio":
-        venta_encontrada["precio"] = int(str(nuevo_valor).replace(".", "").replace(",", ""))
+        try:
+            nuevo_precio = int(str(nuevo_valor).replace(".", "").replace(",", ""))
+        except ValueError:
+            return {"ok": False, "mensaje": "El precio debe ser un número válido."}
+        if nuevo_precio <= 0:
+            return {"ok": False, "mensaje": "El precio debe ser mayor que 0."}
+        venta_encontrada["precio"] = nuevo_precio
     else:
         return {"ok": False, "mensaje": "Campo no válido. Los campos editables son: producto, cantidad, precio."}
-    guardar_datos(ventas)
+    resultado = guardar_datos(ventas)
+    if not resultado["ok"]:
+        return resultado
     return {"ok": True, "mensaje": "Venta editada exitosamente."}
 
 def resumen_semanal(ventas):
